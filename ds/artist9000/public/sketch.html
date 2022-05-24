@@ -165,12 +165,28 @@
         mousePress(false);
       }
       
-      window.addEventListener("mousedown", mouseDown);
-      window.addEventListener("mouseup", mouseUp);
+      window.addEventListener("mousedown", (event) => {
+        //mouse button 2 = RMB
+        if (event.button != 2){
+          setRMB(false);
+        } else {
+          setRMB(true);
+        }
+        mouseDown();
+      });
+      window.addEventListener("mouseup", (event) => {
+        //mouse button 2 = RMB
+        if (event.button != 2){
+          setRMB(false);
+        } else {
+          setRMB(true);
+        }
+        mouseUp();
+      });
 
-      //disable right click to prevent errors
+      //alert sketch tool not to draw
       window.addEventListener('contextmenu', (event) => {
-        event.preventDefault()
+        setRMB(true);
       })
 
       //re-rolls the prompt

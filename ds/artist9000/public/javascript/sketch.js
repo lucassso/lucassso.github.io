@@ -19,6 +19,9 @@ let olddy;
 let dx = 0;
 let dy = 0;
 
+//keep track of right mouse button
+let rmb_down = false;
+
 //dont allow drawing if modal is open
 let modalOpen = false;
 
@@ -72,6 +75,9 @@ let numPoints = 0;
 const stopThreshold = 0;
 const changeThreshold = 12;
 
+/**
+ * sets up the canvas when the page is loaded
+ */
 function setup() {
     //set up the canvas dynamically
     width = windowWidth * 0.7;
@@ -90,6 +96,10 @@ function setup() {
     olddy = dy;
 }
 
+/**
+ * draws on the screen if the mouse button is down every frame
+ * @returns true if something is drawn, false otherwise
+ */
 function draw() {
     if (!modalOpen){
         let rtn = false;
@@ -100,7 +110,7 @@ function draw() {
         dx = mouseX - oldMouseX;
         dy = mouseY - oldMouseY;
     
-        if(mouseIsPressed) {
+        if(mouseIsPressed && !rmb_down) {
     
             //check to see if you draw with color or erase (aka draw with background color)
             if (eraser){
@@ -147,7 +157,7 @@ function draw() {
                 //finally, since we know you have the pencil tool equipped, set the color of the line to the chosen color
                 stroke(r, g, b);
             }
-    
+            console.log("draw");
             //draw a line and set the return to true
             line(mouseX, mouseY, pmouseX, pmouseY)
             rtn = true;
@@ -162,6 +172,9 @@ function draw() {
     return false;
 }
 
+/**
+ * clears all drawings on the screen and resets some variables
+ */
 function clearScreen(){
     if (!modalOpen){
         //clear the canvas and reset background
@@ -181,6 +194,12 @@ function clearScreen(){
     
 }
 
+/**
+ * changes the color of the pen tool
+ * @param {Number} newr new red value
+ * @param {Number} newg new green value
+ * @param {Number} newb new blue value
+ */
 function changeColor(newr, newg, newb){
     if (!modalOpen) {
         //changes the color of the pencil tool if its not the same color as the background (aka the eraser tool)
@@ -193,6 +212,9 @@ function changeColor(newr, newg, newb){
     
 }
 
+/**
+ * selects the eraser, changes variables relating to how the eraser tool interacts with the sketch tool
+ */
 function equipEraser(){
     if (!modalOpen){
         //set the cursor and size of the brush to eraser format
@@ -203,6 +225,9 @@ function equipEraser(){
     
 }
 
+/**
+ * selects the pen, changes variables relating to how the pen tool interacts with the sketch tool
+ */
 function equipPencil(){
     if (!modalOpen){
         //set the cursor and size of the brush to pencil format
@@ -213,6 +238,10 @@ function equipPencil(){
     
 }
 
+/**
+ * downloads the current state of the canvas on the local machine
+ * @param {String} prompt prompt given to user (to name the file)
+ */
 function saveDrawing(prompt){
     if (!modalOpen){
         //download the current canvas state and name it the prompt given to the user
@@ -221,6 +250,9 @@ function saveDrawing(prompt){
     
 }
 
+/**
+ * starts a stroke if the mouse is clicked on the canvas, makes a new entry into recorded points
+ */
 function startStroke(){
     if (!modalOpen){
         //start a stroke with the pencil tool on the canvas (check both of those conditions)
@@ -241,6 +273,9 @@ function startStroke(){
     
 }
 
+/**
+ * ends a stroke and resets variables
+ */
 function endStroke(){
     if (!modalOpen){
         //end a stroke, given its already begun
@@ -254,6 +289,9 @@ function endStroke(){
     }
 }
 
+/**
+ * toggles the modal detection variable between open and closed
+ */
 function toggleModal(){
     if (!modalOpen){
         modalOpen = true;
@@ -262,6 +300,9 @@ function toggleModal(){
     }
 }
 
+/**
+ * records a point on the current stroke and stores it in the strokes array
+ */
 function record(){
     if (!modalOpen){
         //records a point on a stroke into the 3D array
@@ -271,25 +312,32 @@ function record(){
             //make a new entry into the 3D array
             strokes[numberStrokes][0][numPoints] = mouseX;
             strokes[numberStrokes][1][numPoints] = mouseY;
-
             numPoints++;
         }
     }
     
 }
 
+/**
+ * gets the strokes in the user's drawing
+ * @returns 3D array of strokes
+ */
 function getStrokes(){
     return strokes;
 }
 
+/**
+ * gets the colors used in each stroke of the drawing
+ * @returns 2D array of colors (RGB values)
+ */
 function getColors(){
     return rgb;
 }
 
 /**
  * draws an "average line" by connecting the points in the color that the stroke was originally drawn in
- * @param {*} strokes 
- * @param {*} colors 
+ * @param {Array} strokes 3D array of strokes for drawing
+ * @param {Array} colors 2D array of colors (in RGB format) used in each stroke in order (if null, assume just black)
  */
 function drawAvg(strokes, colors){
     //draws the averages of each stroke on the canvas by looping through the 3D array and connecting a straight line between every point
@@ -319,3 +367,14 @@ function drawAvg(strokes, colors){
         }
     }
 }
+
+/**
+ * setter for rmb_down (RMB = right mouse button)
+ * @param {Boolean} bool true if rmb is pressed, false otherwise
+ */
+function setRMB(bool){
+    //check to make sure it is a boolean
+    if (bool === true || bool === false){
+      rmb_down = bool;
+    }
+  }
