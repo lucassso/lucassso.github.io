@@ -1,0 +1,292 @@
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet" />
+  <title>Retro Ball</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+
+<body class="bg-green-700 text-center text-white font-sans">
+  <div id="menuStuff">
+    <div id="theHead">
+      <br>
+      <h1 class="mt-18 text-5xl">Retro Ball</h1>
+      <div id="credits">
+        <h2 class="text-4xl mt-8">Will, Lucas, Noah</h2>
+        <br />
+      </div>
+    </div>
+  </div>
+
+  <div class="from-orange-400 to-orange-700">
+    <button
+      class="bg-gradient-to-r text-white w-1/4 hover:from-teal-400 hover:to-blue-500 flex items-center justify-center text-white"
+      id="newGame">
+      <span id="value"></span>
+    </button>
+
+
+    <div id="sliderPlayer">
+      <input type="range" min="2" max="5" value="2" class="slider" id="slider" step="1">
+      <br>
+      <br>
+    </div>
+
+    <div id="showTips">
+      <p>Show Tips:</p>
+      <label class="switch" id="tipsToggle">
+        <input type="checkbox" checked>
+        <span class="slide"></span>
+      </label>
+    </div>
+
+    <div id="showAudio">
+      <p>Sound Effects: </p>
+      <label class="switch" id="audioToggle">
+        <input type="checkbox">
+        <span class="slide"></span>
+      </label>
+    </div>
+
+    <button
+      class="mt-16 bg-gradient-to-r text-white w-1/4 flex hover:from-teal-400 hover:to-blue-500 items-center justify-center text-white"
+      id="backBtn">
+      Go Back
+    </button>
+
+    <div id="howToPlay">
+      <button
+        class="bg-gradient-to-r text-white w-1/4 hover:from-teal-400 hover:to-blue-500 flex items-center justify-center text-white"
+        id="tutorial">How to Play</button>
+    </div>
+  </div>
+  </div>
+
+  <div>
+    <div class="text-center text-white font-sans flex justify-center" id="finalResult"></div>
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <span class="close">X</span>
+        <div class="desc">
+          <h2 class="title"><b><span id="titleOfModal">Soccer Tip</span></b></h2>
+          <span class="tips">
+            <p class="words">
+              <span id="tip_desc"></span>
+            </p>
+            <img class="gif" width="400" height="400" id="tip_gif">
+          </span>
+        </div>
+      </div>
+
+    </div>
+    <!-- <p class="text-1xl" id="blueteam_score"></p>
+      <p class="text-1xl" id="redteam_score"></p> -->
+    <div id="showThings" width=>
+      <p id="halftime"><span id="half"></span></p>
+      <p class="text-1xl"><span id="score"></span></p>
+      <p id="timer"><span id="mins"></span><span id="secs"></span></p>
+    </div>
+    <canvas class="text-center text-white font-sans flex justify-center" id="game" width="900" height="500"></canvas>
+
+    <p class="text-1xl" id="instructions">
+      WASD/ARROWS to MOVE <br />
+      SHIFT to RUN <br />
+      SPACE to SHOOT <br />
+      E to SWITCH PLAYERS <br />
+      R to RESET <br />
+    </p>
+    <p class="text-1xl" id="instructions"></p>
+
+  </div>
+
+  <script src="javascript/class.js"></script>
+  <script type='text/javascript'>
+    let canvas = document.getElementById("game");
+    let context = canvas.getContext("2d");
+    canvas.style.display = "none";
+    window.requestAnimationFrame =
+      window.requestAnimationFrame ||
+      window.mozRequestAnimationFrame ||
+      window.webkitRequestAnimationFrame ||
+      window.msRequestAnimationFrame
+      ;
+
+    let cr_audio = new Audio('media/audio/last_10_secs_clash_royale.mp3');
+    let rl_audio = new Audio('media/audio/rocket_league_countdown.mp3');
+    let crIsPlaying = false;
+    let rlIsPlaying = false;
+
+    let up = false;
+    let down = false;
+    let left = false;
+    let right = false;
+    let shoot = false;
+    let run = false;
+    let restart = false;
+    let modalOpen = false;
+    let upon_theGoal = canvas.height / 2 - 73;
+    let down_theGoal = canvas.height / 2 + 73;
+
+    //the 3-2-1-GO! countdown
+    let doCountdown = true;
+    let countdownLabel = 3;
+    //how often to check for team tackling
+    let team_tackle_countdown = 5;
+    //see if red's defense is being observed
+    let checkingDefense = false;
+    //how often to check player's involvement
+    let countdown_player_distance = 0;
+
+    //lastTouch is the last person to touch the ball, secondlastTouch is the second-to-last person to touch the ball
+    let lastTouch = null;
+    let secondlastTouch = null;
+    let blueHasPoss = false;
+
+    let canvasShown = false;
+
+    let num_players = 2;
+
+    /**
+     * the TIPS!!
+     * 
+     * making gifs: 600x600, 4-6 seconds, use ezgif.com
+     * 
+     * 0: dont shoot when theres a defender in front of you (shot and no point change)
+     * 1: you gotta get back to defend (goal is scored)
+     * 2: shoot on the other goal (dumbass)
+     * 3: dont be a ball hog
+     * 4: youre too far away from the play
+     * 5: dont tackle ur teamates
+     * 6: tutorial
+     */
+    let modal_tip_desc =
+      [
+        "If you have a defender in front of you, don't try to shoot! It's very difficult, and is much better if you pass to your teammates. More than likely, they will have a better angle for a shot!",
+        "The best offense is a solid defense! Make sure to help your team out on defense; the transition is very important! Many games are lost and won in this state. ",
+        "Wrong goal! Your team is going the other way.",
+        "Make sure you are passing to your teammates! This gives you and your team space to operate, allowing better movement, openings, and opportunities to finish!",
+        "Help your team out! Make sure you are always involved in the play!",
+        "Try not to tackle your teammates! This will only make the flow of your teamwork worse. Instead, try tackling the opponents to throw them off!",
+        "Retro Ball is an adaptation of soccer on a 2D plane. The player you control is light blue, and you and your teammates attempt to score on the red team for points. Retro Ball also has optional helpful pointers to improve your soccer gameplay in the future, which can be applied to real-world scenarios as well. Enjoy!"
+      ];
+
+    let modal = document.getElementById("modal");
+    let span = document.getElementsByClassName("close")[0];
+
+    let TIMER = 120;
+    let time = TIMER;
+    let half = 1;
+
+    let lastTouchHappened = 0;
+    let shotHappened = time;
+
+    //make the quick play button display how many players on each team (on startup)
+    let numPlayers = slider.value;
+    document.getElementById("value").innerHTML = numPlayers + "v" + numPlayers + " Match";
+
+    let toggle1 = 1;
+    let showTips = true;
+
+    //make it look pwetty
+    let toggleButton1 = document.getElementById("tipsToggle");
+
+    let toggle2 = -1;
+    let showAudio = false;
+    //make it look pwetty
+    let toggleButton2 = document.getElementById("audioToggle");
+
+    /**
+     * re-displays all the menu html elements
+     * @time O(1)
+     */
+    let goBack = function () {
+      document.getElementById("theHead").style.display = "block";
+      document.getElementById("newGame").style.display = "block";
+      document.getElementById("aboutBtn").style.display = "block";
+      document.getElementById("sliderPlayer").style.display = "block";
+      document.getElementById("settingsBtn").style.display = "block";
+      document.getElementById("howToPlay").style.display = "inline";
+      document.getElementById("showTips").style.display = "grid";
+      document.getElementById("showAudio").style.display = "grid";
+      document.getElementById("backBtn").style.display = "none";
+      document.getElementById("credits").style.display = "none";
+      canvasShown = false;
+    };
+
+    //set the score and make empty teams
+    let blueteam = 0;
+    let redteam = 0;
+
+    /**
+     * blue team:
+     * 
+     * 0: goalie
+     * 1: user
+     * 2-4: fieldplayers
+     * 
+     */
+    let blueplayers = new LinkedList();
+    /**
+     * blue team:
+     * 
+     * 0: goalie
+     * 1-4: fieldplayers
+     * 
+     */
+    let redplayers = new LinkedList();
+
+    //make a ball
+    let ball = new Ball(canvas.width / 2, canvas.height / 2);
+
+    /**
+    * sets the bounds that the ball must stay between, detects if a ball is in a "goal"
+    * @returns ends function if a goal has been scored
+    * @time O(1)
+    */
+    const ballBounds = async () => {
+      // for the x (axis) parts of the field
+      //if it's the goal gate
+      // this means a point for the blue team
+      if (ball.x + ball.size > canvas.width) {
+        if (ball.y > canvas.height / 2 - 73 && ball.y < down_theGoal) {
+          scored(true);
+          return;
+        }
+        // if it's not a goal gate
+        ball.x = canvas.width - ball.size;
+        ball.xVel *= -1.5;
+      }
+      //if it's the goal gate
+      // this means a point for the red team
+      if (ball.x - ball.size < 0) {
+        if (ball.y > upon_theGoal && ball.y < down_theGoal) {
+          scored(false);
+          return;
+        }
+        ball.x = 0 + ball.size;
+        ball.xVel *= -1.5;
+      }
+
+      // for the y (axis) parts of the field
+      if (ball.y + ball.size > canvas.height) {
+        ball.y = canvas.height - ball.size;
+        ball.yVel *= -1.5;
+      }
+
+      if (ball.y - ball.size < 0) {
+        ball.y = 0 + ball.size;
+        ball.yVel *= -1.5;
+      }
+    };
+
+  </script>
+  <script src="javascript/gui.js"></script>
+  <script src='javascript/logic.js'></script>
+  <script src="javascript/events.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <link rel="stylesheet" href="styles/sketch.css">
+    <title>Artist 9000</title>
+  </head>
+  <body>
+
+    <div class="container">
+      <div class="title" id="mainMenu">ARTIST 9000</div>
+      <div class="names">Finn T, Jonathan D, Lucas R</div>
+      <div id="desc">
+        <p>
+          Artist 9000 is a tool to teach children how to draw 2D art. Users can draw pictures given a prompt with a 2D drawing tool and download them
+          or send the image through an algorithm for feedback. The algorithm then guesses what the art piece is, and gives constructive criticism on the user's 
+          accuracy in their drawing.
+        </p>
+      </div>
+      <div id="submit2">
+        <button id="start" class="submit">Play</button>
+      </div>
+    </div>
+
+    <script>
+      //opens the sketching page when start button is clicked
+      document.getElementById("start").onclick = function () {
+        window.location.href = 'sketch.html';
+      }
+
+      //disable right click to prevent errors
+      window.addEventListener('contextmenu', (event) => {
+        event.preventDefault()
+      })
+
+    </script>
+  </body>
+</html>

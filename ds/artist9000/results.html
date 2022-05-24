@@ -1,0 +1,156 @@
+<html lang="en-US">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <link rel="stylesheet" href="styles/sketch.css">
+    <link rel="stylesheet" href="styles/results.css">
+
+    <script src="javascript/jsonitems.js"></script>
+    <script src="javascript/heap.js"></script>
+    <script src="javascript/logic.js"></script>
+    <title>Artist 9000</title>
+  </head>
+  <body>
+    <div class="container">
+        <div class="title">Final Guess</div>
+        <div id="guess">
+            <img id="drawing">
+        </div>
+        <table id="closest">
+            <tr>
+                <th id="finalHolder"><span id="final">test</span></th>
+            </tr>
+            <tr>
+                <td id="filler"></td>
+            </tr>
+        </table>
+        <div class="title">Other Close Guesses</div>
+        <table id="closest2">
+        </table>
+
+        <div id="submit2">
+            <button id="show" class="submit">Show more</button>
+            <button id="back" class="submit">Play Again!</button>
+            <button id="back2" class="submit">Back to Main Menu</button>
+          </div>
+    </div>
+
+    <script>
+
+        //check if user came from sketch.html or not
+        if (sessionStorage.getItem("canvasURL") == null) window.location.href = 'index.html';
+
+        //put the user drawing in the HTMl
+        document.getElementById("drawing").setAttribute("src", sessionStorage.getItem("canvasURL"))
+
+        let givenPrompt2 = sessionStorage.getItem("prompt");
+
+        //handle button pressed
+        document.getElementById("back").onclick = function () {
+            //removes the prompt and goes to the sketch.html page
+            sessionStorage.removeItem("prompt");
+            window.location.href = 'sketch.html';
+        }
+        document.getElementById("back2").onclick = function () {
+            //removes the prompt and goes back to the main menu
+            sessionStorage.removeItem("prompt");
+            window.location.href = 'index.html';
+        }
+        document.getElementById("show").onclick = function () {
+            //shows the extra guessed (#11-#50)
+            toggleExtras(this);
+        }
+
+        let toggle = 1;
+        //toggles the #11 through #50 guesses to be shown on the page and alters the text of the toggle button
+        function toggleExtras(toggleButton){
+            toggle *= -1;
+            if (toggle == -1){
+                //show the extras and update button
+                let extras = document.getElementsByClassName("extras");
+                for (let row of extras){
+                    row.style.display = "block";
+                }
+                toggleButton.innerText = "Show less";
+            } else if (toggle == 1){
+                //hide the extras and update button again
+                let extras = document.getElementsByClassName("extras");
+                for (let row of extras){
+                    row.style.display = "none";
+                }
+                toggleButton.innerText = "Show more";
+            }
+        }
+
+        //first set the final guess on the HTML (id's have different names)
+        let finalPrompt = sessionStorage.getItem("prompt1");
+        
+        let finalSimilarity = sessionStorage.getItem("similarity1");
+        document.getElementById("final").innerText = finalPrompt + " [" + addZeros(finalSimilarity) + "%]";
+        if (finalPrompt == givenPrompt2) {
+            document.getElementById("finalHolder").setAttribute("class", "right")
+        }
+
+        //now do the rest of the guesses, first add all the elements to the HTML dynamically
+        for (let i = 2; i <= prompts.length; i++){
+            //make a new element
+            let row = document.createElement("tr");
+            let cell = document.createElement("td");
+            row.appendChild(cell);
+            //add twos text boxes to cell
+            let text = document.createElement("span");
+            text.setAttribute("id", "prompt" + i.toString());
+            cell.appendChild(text);
+            let sim = document.createElement("span");
+            sim.setAttribute("id", "similarity" + i.toString());
+            cell.appendChild(sim);
+
+            //add to second table
+            let others = document.getElementById("closest2");
+            others.appendChild(row);
+
+            //if its not in the top 10 hide for now
+            if (i > 10) row.setAttribute("class", "extras");
+
+            //now fill the text with the data we just collected
+            let prompt = sessionStorage.getItem("prompt" + i.toString());
+            let similarity = sessionStorage.getItem("similarity" + i.toString());
+            document.getElementById("prompt" + i.toString()).innerText = i.toString() + ". " + prompt;
+            document.getElementById("similarity" + i.toString()).innerText = " [" + addZeros(similarity) + "%]";
+
+            //check if we highlight it
+            if (prompt == givenPrompt2){
+                cell.setAttribute("class", "right");
+            }
+        }
+
+        //appends extra zeros as necessary to the percentage so its in the format xx.xx% (no matter what)
+        function addZeros(number){
+            //input is a string (thats how its stored in sessionStorage), so convert to Number (specifically a decimal)
+            number = parseFloat(number);
+            let string = number.toString(); 
+            if (number < 10) string = "0" + number.toString();
+            if (Math.floor(number) !== number){
+                //it has a decimal already
+                string = string.padEnd(5, '0');
+            } else {
+                string = string.padEnd(4, '0');
+            }
+            
+            //if there was no decimal originally, add one in
+
+            //first temporarily concatenate a symbol
+            string += "%";
+            //add a decimal if one never existed
+            string = string.replace("00%", ".00%");
+            //removes symbol
+            return string.replace("%", "");
+        }
+
+        //disable right click to prevent errors
+        window.addEventListener('contextmenu', (event) => {
+            event.preventDefault()
+        })
+
+    </script>
+  </body>
+</html>
