@@ -56,3 +56,11 @@ a:hover{
     font-size: 36px;
     background-color: inherit;
 }
+
+#others * a {
+    display: inline;
+}
+
+#others * {
+    display: block;
+}
