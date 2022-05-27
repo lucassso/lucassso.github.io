@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <title>infinite dino!</title>
+    <style>
+        * {
+            background-color: #f3f0c8;
+            text-align: center;
+            font-size: 120px;
+        }
+
+        #spacer{
+            margin-bottom: 5%;
+        }
+
+        img {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            width: 80%;
+
+        }
+    </style>
+</head>
+<body>
+    <h2>infinite dino!</h2>
+    <div id="spacer"></div>
+    <div id="dino"></div>
+</body>
+
+<script>
+    window.onload = function () {
+            //have a timer so it doesnt add too many necks
+            const time = 5;
+            let timer = time;
+
+            //get the parent element
+            let dino = document.getElementById("dino");
+
+            //add the head
+            let head = document.createElement("img");
+            head.setAttribute("src", "res/head.png");
+            dino.appendChild(head);
+
+            //keep track of last scroll
+            let prevScroll = 0;
+
+            /**
+             * adds a new neck to the dino haha
+             */
+            function addNeck() {
+                let scroll = window.pageYOffset;
+                //if its NOT an up scroll
+                if (!(scroll < prevScroll)) {
+                    timer--;
+                    if (timer == 0) {
+                        timer = time;
+
+                        //randomize the neck options
+                        let chosenNeck = "neck";
+                        let rand = Math.floor(Math.random() * 100);
+                        if (rand <= 2) {
+                            //3% chance of this happening
+                            chosenNeck += rand;
+                        }
+
+                        //create a neck
+                        let neck = document.createElement("img");
+                        neck.setAttribute("src", "res/" + chosenNeck + ".png");
+                        dino.appendChild(neck);
+                    }
+                }
+
+                prevScroll = (scroll <= 0) ? 0 : scroll;
+            }
+
+            //check for anything related to mouse going down
+            window.addEventListener("scroll", addNeck);
+        }
+</script>
+
+</html>
