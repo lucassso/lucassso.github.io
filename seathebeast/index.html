@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
+        <title>SEA THE BEAST</title>
+    </head>
+    <body>
+        <img src="switch1.png" onclick="toggleImg()" id="img">
+        <script>
+            let img = document.getElementById("img");
+            let toggle = 1;
+            function toggleImg(){
+                toggle *= -1;
+                if (toggle == -1){
+                    img.setAttribute("src", "switch2.png")
+                } else {
+                    img.setAttribute("src", "switch1.png")
+                }
+            }
+        </script>
+    </body>
+</html>
